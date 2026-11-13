@@ -40,6 +40,16 @@ extension AccessibilityChannel {
                     ["EQ", "Channel EQ", "Stereo"],
                 ]
             )
+        case "pitch shifter", "pitchshifter":
+            return PluginInsertSpec(
+                canonicalName: "Pitch Shifter",
+                aliases: ["Pitch Shifter", "PShft"],
+                menuPaths: [
+                    ["Pitch", "Pitch Shifter", "Stereo"],
+                    ["Pitch", "Pitch Shifter", "스테레오"],
+                    ["Pitch", "Pitch Shifter"],
+                ]
+            )
         default:
             return nil
         }
@@ -76,7 +86,7 @@ extension AccessibilityChannel {
             }
             return .error(HonestContract.encodeStateC(
                 error: .invalidParams,
-                hint: "unsupported plugin for insert_plugin. Supported stock plugins: Gain, Compressor, Channel EQ",
+                hint: "unsupported plugin for insert_plugin. Supported stock plugins: Gain, Compressor, Channel EQ, Pitch Shifter",
                 extras: ["requested_plugin_name": requestedPluginName]
             ))
         }
