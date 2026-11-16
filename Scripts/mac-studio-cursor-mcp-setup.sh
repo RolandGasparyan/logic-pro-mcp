@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Logic Pro MCP + Cursor setup for Roland's Mac Studio.
-# Run in Terminal.app on macOS (not on the Linux cloud agent VM).
+# Logic Pro MCP + Cursor setup (macOS only).
+# Cloud agents cannot run this; pipe from GitHub: curl -fsSL …/mac-studio-cursor-mcp-setup.sh | bash
 set -euo pipefail
 
-SOURCE_BUILD_ROOT="${LOGIC_PRO_MCP_SOURCE:-$HOME/tempoproj/higgsfield-studio/logic-pro-mcp}"
+SOURCE_BUILD_ROOT="${LOGIC_PRO_MCP_SOURCE:-$HOME/tempoproj/higgsfield-studio/logic-pro-mcp-upstream}"
 MCP_USER_JSON="${HOME}/.cursor/mcp.json"
 MCP_PROJECT_JSON=""
 REPORT_DIR="${TMPDIR:-/tmp}/logic-pro-mcp-setup-$$"
@@ -49,11 +49,9 @@ if os.path.exists(path):
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 servers = data.setdefault("mcpServers", {})
-servers["logic-pro"] = {
-    "command": command if os.path.isabs(command) else "LogicProMCP",
-}
-if command != "LogicProMCP" and os.path.isabs(command):
-    servers["logic-pro"]["command"] = command
+if os.path.isfile(command):
+    command = os.path.realpath(command)
+servers["logic-pro"] = {"command": command}
 with open(path, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2)
     f.write("\n")
@@ -64,17 +62,25 @@ PY
 USER_CFG="$(register_mcp_json "$MCP_USER_JSON")"
 log "Updated Cursor user MCP config: $USER_CFG"
 
-if [[ -d "$SOURCE_BUILD_ROOT/.cursor" ]] || [[ -f "$SOURCE_BUILD_ROOT/.cursor/mcp.json" ]]; then
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../.cursor/mcp.json" ]]; then
+  MCP_PROJECT_JSON="$(cd "$SCRIPT_DIR/.." && pwd)/.cursor/mcp.json"
+  PROJ_CFG="$(register_mcp_json "$MCP_PROJECT_JSON")"
+  log "Updated project MCP config: $PROJ_CFG"
+elif [[ -f "$SOURCE_BUILD_ROOT/.cursor/mcp.json" ]]; then
   MCP_PROJECT_JSON="$SOURCE_BUILD_ROOT/.cursor/mcp.json"
   PROJ_CFG="$(register_mcp_json "$MCP_PROJECT_JSON")"
   log "Updated project MCP config: $PROJ_CFG"
 fi
 
+log "Launching Logic Pro (ignore if already open)..."
+open -a "Logic Pro" 2>/dev/null || open -a "Logic Pro Creator Studio" 2>/dev/null || log "(Logic Pro not found in /Applications — open it manually before doctor)"
+
 log "=== LogicProMCP --check-permissions ==="
 "$LOGIC_BIN" --check-permissions | tee "$REPORT_DIR/check-permissions.txt"
 
-log "=== LogicProMCP doctor --json --client cursor ==="
-"$LOGIC_BIN" doctor --json --client cursor | tee "$REPORT_DIR/doctor-cursor.json"
+log "=== LogicProMCP doctor --json --client cursor --profile core ==="
+"$LOGIC_BIN" doctor --json --client cursor --profile core | tee "$REPORT_DIR/doctor-cursor.json"
 
 log ""
 log "=== Summary paths ==="
