@@ -9,7 +9,13 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 log() { printf '\n== %s ==\n' "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 
-[[ "$(uname -s)" == "Darwin" ]] || fail "Run on macOS only."
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  fail "WRONG MACHINE: you are on $(uname -s) (host=$(hostname), user=$USER, pwd=$PWD).
+This is Cursor's Linux cloud agent — Logic Pro MCP cannot run here.
+On your Mac Studio open Terminal.app (prompt: roland@ROLANDs-Mac-Studio) and run:
+  cd ~/logic-pro-mcp && git pull origin main && bash Scripts/mac-full-mcp-connect.sh
+Do NOT use the cloud terminal that shows 'workspace \$' or 'logic-pro-mcp \$' with /home/ubuntu paths."
+fi
 
 ensure_repo_checkout() {
   local url="${LOGIC_PRO_MCP_GIT_URL:-https://github.com/RolandGasparyan/logic-pro-mcp.git}"
