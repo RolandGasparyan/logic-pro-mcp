@@ -70,7 +70,7 @@ if [[ -z "${LOGIC_BIN}" || ! -x "${LOGIC_BIN}" ]]; then
   brew tap MongLong0214/logic-pro-mcp https://github.com/MongLong0214/logic-pro-mcp
   brew trust monglong0214/logic-pro-mcp 2>/dev/null || true
   brew install logic-pro-mcp
-  LOGIC_BIN="$(command -v LogicProMCP)"
+  LOGIC_BIN="$(command -v LogicProMCP || true)"
 fi
 
 [[ -n "$LOGIC_BIN" && -x "$LOGIC_BIN" ]] || fail "LogicProMCP still not found after install."
