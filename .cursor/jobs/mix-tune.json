@@ -1,0 +1,9 @@
+{
+  "job": "mix_balance_tune_vocals",
+  "requested_at_utc": "2026-11-22T03:07:00Z",
+  "branch": "cursor/mac-mix-tune-vocals-c66d",
+  "script": "Scripts/mac-balance-mix-tune-vocals.sh",
+  "status": "done",
+  "bc_id": "bc-cd12a4fc-980a-47c4-ba29-67f98eefc66d",
+  "finished_at_utc": "2026-11-22T03:12:27Z"
+}

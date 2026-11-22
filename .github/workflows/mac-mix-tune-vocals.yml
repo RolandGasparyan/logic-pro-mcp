@@ -1,0 +1,27 @@
+name: Mac mix and vocal tune
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Plan only (no Logic writes)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+jobs:
+  mix-tune:
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Balance mix and tune vocals
+        run: |
+          chmod +x Scripts/mac-balance-mix-tune-vocals.sh
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ./Scripts/mac-balance-mix-tune-vocals.sh --dry-run
+          else
+            ./Scripts/mac-balance-mix-tune-vocals.sh
+          fi
