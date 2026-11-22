@@ -19,7 +19,13 @@ Logic Pro MCP talks to Logic Pro only on **macOS**. Cloud Agents that boot on Li
    brew install logic-pro-mcp
    ```
 
-3. Run the one-shot Mac bootstrap (fixes `git@github.com` SSH remotes, installs Agent CLI, then connects MCP):
+3. **Logic + ACE (recommended):** one script on the Mac Studio:
+
+   ```bash
+   bash Scripts/mac-logic-ace-all.sh
+   ```
+
+   Logic only (fixes SSH `origin`, Agent CLI, LogicProMCP):
 
    ```bash
    bash Scripts/mac-bootstrap-all.sh
