@@ -60,6 +60,8 @@ main() {
   ensure_repo
   log "Running full Logic Pro MCP + Cursor connect"
   bash "$DEST/Scripts/mac-full-mcp-connect.sh"
+  log "Installing Cursor agent skills (.cursor/skills -> ~/.cursor/skills)"
+  bash "$DEST/Scripts/install-cursor-skills.sh" --no-regenerate
   log "Optional — cloud agents on this Mac (new Terminal tab, keep open):"
   printf '  export PATH="$HOME/.local/bin:$PATH"\n'
   printf '  agent login\n'
