@@ -26,11 +26,14 @@ ensure_repo_checkout() {
   mkdir -p "$(dirname "$dest")"
   if [[ -d "$dest/.git" ]]; then
     git -C "$dest" remote set-url origin "$url" 2>/dev/null || true
+    [[ -z "$(git -C "$dest" status --porcelain -- . ":!.cursor/mcp.json")" ]] || fail "$dest has uncommitted changes; commit or stash them first"
     git -C "$dest" fetch origin main
-    git -C "$dest" checkout -f main
-    git -C "$dest" pull origin main
+    git -C "$dest" checkout main
+    git -C "$dest" pull --ff-only origin main
   else
-    rm -rf "$dest"
+    if [[ -e "$dest" && -n "$(ls -A "$dest" 2>/dev/null)" ]]; then
+      fail "$dest exists, is not empty and is not a git checkout; refusing to delete it"
+    fi
     git clone "$url" "$dest"
   fi
   exec "$dest/Scripts/mac-full-mcp-connect.sh" "$@"
@@ -102,7 +105,7 @@ main() {
   log "1/5 Homebrew + Cursor MCP registration"
   bash "$SCRIPT_DIR/cursor-mcp-setup.sh"
 
-  LOGIC_BIN="$(command -v LogicProMCP)"
+  LOGIC_BIN="$(command -v LogicProMCP || true)"
   [[ -n "$LOGIC_BIN" ]] || fail "LogicProMCP missing after setup"
 
   log "2/5 System Settings + Logic Pro"
