@@ -45,8 +45,12 @@ ensure_repo() {
     log "Setting origin to HTTPS: $REPO_URL"
     git remote set-url origin "$REPO_URL"
   fi
+  if [[ -n "$(git status --porcelain -- . ":!.cursor/mcp.json")" ]]; then
+    printf 'ERROR: %s has uncommitted changes; commit or stash them first.\n' "$DEST" >&2
+    exit 1
+  fi
   git fetch origin main
-  git checkout -f main 2>/dev/null || git checkout -f -B main
+  git checkout main 2>/dev/null || git checkout -B main origin/main
   git pull --ff-only origin main
 }
 

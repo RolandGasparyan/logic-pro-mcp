@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """Call logic_mixer.set_plugin_param to set Pitch Shifter pitch to -2 on track 12 (Knock A)."""
-import subprocess, json, sys, threading, queue, os
+import subprocess, json, sys, threading, queue, os, shutil
 
-MCP_SERVER = "/Users/rolandgasparyan/.local/bin/LogicProMCP"
+def resolve_server():
+    override = os.environ.get("LOGIC_PRO_MCP_BIN", "").strip()
+    found = override or shutil.which("LogicProMCP") or os.path.expanduser("~/.local/bin/LogicProMCP")
+    if not os.path.isfile(found):
+        sys.exit(f"ERROR: LogicProMCP not found at {found}; set LOGIC_PRO_MCP_BIN")
+    return found
+
+MCP_SERVER = resolve_server()
 
 def main():
-    proc = subprocess.Popen([MCP_SERVER], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ.copy())
+    proc = subprocess.Popen([MCP_SERVER], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=os.environ.copy())
     rid = [0]
     def nid():
         rid[0] += 1; return rid[0]
@@ -18,8 +25,9 @@ def main():
             if not ch: return None
             line += ch
             if ch == b"\n":
-                try: return json.loads(line.decode().strip())
-                except: continue
+                chunk, line = line, b""
+                try: return json.loads(chunk.decode().strip())
+                except ValueError: continue
     q = queue.Queue()
     threading.Thread(target=lambda: [q.put(r) for r in iter(read_resp, None)], daemon=True).start()
 
@@ -30,7 +38,7 @@ def main():
     send({"jsonrpc":"2.0","method":"notifications/initialized"})
 
     # Call set_plugin_param: track 12, insert 0, param 0, value -2.0
-    send({"jsonrpc":"2.0","id":nid(),"method":"tools/call","params":{"name":"logic_mixer","arguments":{"command":"set_plugin_param","params":{"track":12,"insert":0,"param":0,"value":0.4167}}}})
+    send({"jsonrpc":"2.0","id":nid(),"method":"tools/call","params":{"name":"logic_mixer","arguments":{"command":"set_plugin_param","params":{"track":int(os.environ.get("PITCH_TRACK","12")),"insert":0,"param":0,"value":float(os.environ.get("PITCH_VALUE","0.4167"))}}}})
     resp = q.get(timeout=30)
     print(json.dumps(resp, indent=2))
     proc.kill()

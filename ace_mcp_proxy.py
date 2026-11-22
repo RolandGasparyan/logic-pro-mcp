@@ -18,6 +18,12 @@ def main():
         env=os.environ.copy(),
     )
 
+
+    def drain_stderr():
+        for raw in iter(proc.stderr.readline, b""):
+            print(f"[server] {raw.decode(errors='replace').rstrip()}", file=sys.stderr)
+    threading.Thread(target=drain_stderr, daemon=True).start()
+
     request_id = 0
     def next_id():
         nonlocal request_id
@@ -39,9 +45,10 @@ def main():
                 return None
             line += ch
             if ch == b"\n":
+                chunk, line = line, b""
                 try:
-                    return json.loads(line.decode().strip())
-                except json.JSONDecodeError:
+                    return json.loads(chunk.decode().strip())
+                except (json.JSONDecodeError, UnicodeDecodeError):
                     continue
 
     def read_thread(q):
@@ -83,9 +90,6 @@ def main():
 
     if init_resp is None:
         print("ERROR: No initialize response", file=sys.stderr)
-        # Check stderr
-        stderr_data = proc.stderr.read1(4096) if hasattr(proc.stderr, 'read1') else b""
-        print(f"STDERR: {stderr_data.decode(errors='replace')}", file=sys.stderr)
         proc.kill()
         sys.exit(1)
 
