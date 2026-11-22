@@ -117,7 +117,8 @@ main() {
   PROOF_JSON="$REPO_ROOT/mcp-connection-proof.json"
   MCP_PROVE_JSON="$PROOF_JSON" bash "$SCRIPT_DIR/mcp-prove-connection.sh" | tee "$PROOF_JSON"
 
-  log "5/5 Cursor MCP"
+  log "5/5 Cursor MCP + agent skills"
+  bash "$SCRIPT_DIR/install-cursor-skills.sh" --no-regenerate
   log "In Cursor: Settings → MCP → enable logic-pro (or restart Cursor)."
   log "Open a LOCAL chat in $REPO_ROOT and ask: Check Logic Pro MCP health and show all ready channels."
   log ""

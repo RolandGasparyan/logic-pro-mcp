@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://yourdomain.ai/schemas/mixing_mastering_v1.json",
+  "title": "Mixing & Mastering Knowledge Base",
+  "version": "1.0",
+  "description": "Academic-level mixing/mastering reference for AI audio agents",
+  "meta": {
+    "version": "1.0",
+    "units": { "loudness": "LUFS-I", "true_peak": "dBTP", "dynamics": "PLR", "level": "dBFS" }
+  },
+  "universal_laws": [
+    { "id": 1, "name": "gain_staging_first", "rule": "Mix bus peaks -6 dBFS before mastering; per-track peaks -12..-6 dBFS" },
+    { "id": 2, "name": "subtract_before_add", "rule": "Corrective EQ -> dynamic control -> creative EQ/saturation" },
+    { "id": 3, "name": "level_match_ab", "rule": "Level-match every A/B; >=1 dB louder is perceived as better" },
+    { "id": 4, "name": "phase_before_eq", "rule": "Check mono compatibility on every layer; HPF creates phase shift" },
+    { "id": 5, "name": "one_problem_one_tool", "rule": "Fix masking with EQ OR panning OR arrangement - not all three" },
+    { "id": 6, "name": "reference_matched", "rule": "2-3 commercial refs, level-matched to -14 LUFS" },
+    { "id": 7, "name": "master_not_repair", "rule": ">3 dB single-point corrective EQ -> return to mix" },
+    { "id": 8, "name": "dither_last", "rule": "Nothing after dither; 24->16 bit only on final render" },
+    { "id": 9, "name": "true_peak_ceiling", "rule": "True peak <= -1.0 dBTP (streaming), -3.0 dBTP (vinyl)" },
+    { "id": 10, "name": "mono_check_60s", "rule": "Bass, kick, lead vocal must survive mono every 60 s" },
+    { "id": 11, "name": "automate_not_static", "rule": "Static faders = flat, lifeless mix" },
+    { "id": 12, "name": "genre_dictates_loudness", "rule": "-6 LUFS is not better than -12; it is different" }
+  ],
+  "frequency_map": [
+    { "band": "sub",       "range_hz": [20, 60],     "content": ["808", "kick_fundamental", "sub_bass"], "typical_move": "mono; HPF mix at 20-30 Hz" },
+    { "band": "low",       "range_hz": [60, 120],    "content": ["kick_body", "bass", "low_toms"],      "typical_move": "carve 80-100 Hz between kick/bass" },
+    { "band": "low_mid",   "range_hz": [120, 350],   "content": ["body", "warmth", "mud"],              "typical_move": "-2..-4 dB narrow cut 200-300 Hz" },
+    { "band": "mid",       "range_hz": [350, 2000],  "content": ["fundamental", "intelligibility"],     "typical_move": "presence 800 Hz-1.5 kHz" },
+    { "band": "upper_mid", "range_hz": [2000, 5000], "content": ["attack", "clarity", "harshness"],      "typical_move": "watch 2.5-3.5 kHz masking" },
+    { "band": "presence",  "range_hz": [5000, 8000], "content": ["consonants", "air"],                   "typical_move": "+1..+3 dB 5-7 kHz vocal" },
+    { "band": "air",       "range_hz": [8000, 16000],"content": ["sparkle", "cymbals"],                  "typical_move": "+1..+2 dB shelf" },
+    { "band": "ultra",     "range_hz": [16000, 20000],"content": ["ultrasonic_air"],                    "typical_move": "optional low-pass 18-20 kHz" }
+  ],
+  "masking_priority_order": ["kick_vs_bass", "snare_vs_vocal", "guitars_vs_vocal", "synths_vs_vocal", "reverb_returns"],
+  "loudness_standards": [
+    { "platform": "spotify_apple_youtube", "normalization_lufs": -14, "target_delivery_lufs": [-14, -9] },
+    { "platform": "amazon_music",          "normalization_lufs": -14, "target_delivery_lufs": [-14, -9] },
+    { "platform": "tidal",                 "normalization_lufs": -14, "target_delivery_lufs": [-14, -9] },
+    { "platform": "ebu_r128_broadcast",    "normalization_lufs": -23, "target_delivery_lufs": [-23.5, -22.5], "true_peak_dbtp": -1.0 },
+    { "platform": "club_dj",               "normalization_lufs": null, "target_delivery_lufs": [-9, -7],      "true_peak_dbtp": -0.5 },
+    { "platform": "vinyl_cut",             "normalization_lufs": null, "target_delivery_lufs": null,          "true_peak_dbtp": -3.0, "min_plr": 10 }
+  ],
+  "genres": [
+    { "id": "pop", "family": "pop", "master": { "lufs": [-10, -8], "dbtp": -1.0, "plr": [7, 10] }, "sub": "kick+sub aligned 60 Hz", "vocal": "2-stage comp, 3-5 kHz lift", "width": "wide, mono bass", "signature": "vocal-forward, sidechain reverb" },
+    { "id": "k_pop", "family": "pop", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 9] }, "sub": "tight, mono, 50-70 Hz", "vocal": "heavy parallel comp, de-ess 6-8 k", "width": "ultra-wide FX", "signature": "section-based arrangement jumps" },
+    { "id": "synth_pop", "family": "pop", "master": { "lufs": [-10, -8], "dbtp": -1.0, "plr": [8, 10] }, "sub": "mono sub, tight kick", "vocal": "bright, delay throws", "width": "wide synth pad", "signature": "gated reverb snare" },
+    { "id": "rock", "family": "rock", "master": { "lufs": [-11, -9], "dbtp": -1.0, "plr": [8, 11] }, "sub": "natural kick, bass 80-100 Hz", "vocal": "comp 3:1, presence 3-5 k", "width": "guitars hard L/R", "signature": "parallel drum bus crush" },
+    { "id": "indie_rock", "family": "rock", "master": { "lufs": [-12, -10], "dbtp": -1.0, "plr": [9, 12] }, "sub": "warm, less sub", "vocal": "natural, room-heavy", "width": "moderate", "signature": "room mics prominent" },
+    { "id": "punk", "family": "rock", "master": { "lufs": [-10, -8], "dbtp": -1.0, "plr": [7, 9] }, "sub": "punchy kick", "vocal": "aggressive, fast attack", "width": "wide guitars", "signature": "fast comp, low reverb" },
+    { "id": "metal", "family": "rock", "master": { "lufs": [-10, -8], "dbtp": -1.0, "plr": [7, 9] }, "sub": "clicky kick + bass grit", "vocal": "screams: 1.5-4 k cut", "width": "guitars 100% L/R", "signature": "multiband comp on guitars" },
+    { "id": "hip_hop_trap", "family": "hiphop", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 9] }, "sub": "808 mono, sat 2nd harm", "vocal": "EQ->comp->sat->de-ess", "width": "mono sub, wide hats", "signature": "sidechain 808 to kick" },
+    { "id": "drill", "family": "hiphop", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 8] }, "sub": "sliding 808, mono", "vocal": "glide vocals, heavy tune", "width": "wide melodic loop", "signature": "sliding 808 pitch automation" },
+    { "id": "phonk", "family": "hiphop", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 8] }, "sub": "distorted 808", "vocal": "lo-fi, cowbell lead", "width": "wide, mono bass", "signature": "cowbell + tape saturation" },
+    { "id": "rnb", "family": "rnb", "master": { "lufs": [-11, -9], "dbtp": -1.0, "plr": [8, 10] }, "sub": "smooth sub, round kick", "vocal": "silky, 2-4 k air, doubles", "width": "wide pads", "signature": "vocal stacking + tuning" },
+    { "id": "soul_funk", "family": "rnb", "master": { "lufs": [-12, -10], "dbtp": -1.0, "plr": [9, 12] }, "sub": "natural bass, no sub", "vocal": "dry, dynamic, no autotune", "width": "horns wide", "signature": "live-feel, minimal grid" },
+    { "id": "gospel", "family": "rnb", "master": { "lufs": [-10, -8], "dbtp": -1.0, "plr": [8, 10] }, "sub": "round kick, organ low", "vocal": "choir width, lead cut 2-3 k", "width": "very wide choir", "signature": "choir bus parallel comp" },
+    { "id": "jazz", "family": "acoustic", "master": { "lufs": [-14, -11], "dbtp": -1.0, "plr": [11, 16] }, "sub": "upright bass 60-150 Hz", "vocal": "natural, no comp", "width": "room stereo", "signature": "preserve dynamics, no limiting" },
+    { "id": "blues", "family": "acoustic", "master": { "lufs": [-13, -10], "dbtp": -1.0, "plr": [10, 14] }, "sub": "warm bass", "vocal": "gritty, mid-forward", "width": "moderate", "signature": "amp mic blend" },
+    { "id": "country", "family": "acoustic", "master": { "lufs": [-12, -10], "dbtp": -1.0, "plr": [9, 12] }, "sub": "kick+bass tight", "vocal": "bright, 3-6 k, de-ess", "width": "wide acoustics", "signature": "fiddle/steel panned wide" },
+    { "id": "folk_acoustic", "family": "acoustic", "master": { "lufs": [-14, -11], "dbtp": -1.0, "plr": [10, 14] }, "sub": "minimal sub", "vocal": "natural, light comp", "width": "natural stereo", "signature": "room + close mic blend" },
+    { "id": "singer_songwriter", "family": "acoustic", "master": { "lufs": [-14, -11], "dbtp": -1.0, "plr": [11, 15] }, "sub": "almost no sub", "vocal": "intimate, 200 Hz warmth", "width": "narrow-mid", "signature": "vocal breath, no de-ess abuse" },
+    { "id": "house", "family": "electronic", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 9] }, "sub": "kick 50-60 Hz mono", "vocal": "chops, 2-5 k", "width": "wide pads, mono bass", "signature": "sidechain pump 4/4" },
+    { "id": "techno", "family": "electronic", "master": { "lufs": [-8, -6], "dbtp": -0.8, "plr": [5, 8] }, "sub": "kick sub 40-60 Hz", "vocal": "minimal/robotic", "width": "hypnotic width", "signature": "distortion on bus" },
+    { "id": "trance", "family": "electronic", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 8] }, "sub": "tight kick, no mud", "vocal": "airy, reverb-drenched", "width": "ultra-wide leads", "signature": "long reverb tails, supersaw" },
+    { "id": "drum_and_bass", "family": "electronic", "master": { "lufs": [-8, -6], "dbtp": -0.8, "plr": [5, 8] }, "sub": "sub 40-60 Hz mono", "vocal": "chopped, formant", "width": "wide breaks", "signature": "reese bass + break layers" },
+    { "id": "dubstep_riddim", "family": "electronic", "master": { "lufs": [-8, -6], "dbtp": -0.8, "plr": [5, 7] }, "sub": "heavy sub 30-50 Hz", "vocal": "aggressive, formant", "width": "wide growls", "signature": "LFO bass + multiband" },
+    { "id": "future_bass", "family": "electronic", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 8] }, "sub": "mono sub", "vocal": "chopped, pitch-up", "width": "supersaw wide", "signature": "chord stacks + sidechain" },
+    { "id": "lofi", "family": "ambient", "master": { "lufs": [-14, -11], "dbtp": -1.0, "plr": [10, 14] }, "sub": "soft, filtered", "vocal": "tape-saturated", "width": "narrow, mono-ish", "signature": "vinyl noise + wow/flutter" },
+    { "id": "ambient", "family": "ambient", "master": { "lufs": [-18, -14], "dbtp": -1.0, "plr": [14, 20] }, "sub": "deep, slow", "vocal": "none/spoken", "width": "very wide", "signature": "long reverbs, no transients" },
+    { "id": "hyperpop", "family": "ambient", "master": { "lufs": [-8, -6], "dbtp": -0.8, "plr": [5, 7] }, "sub": "distorted 808", "vocal": "pitched, glitched", "width": "extreme width", "signature": "bitcrush + clipping" },
+    { "id": "classical", "family": "classical", "master": { "lufs": [-20, -16], "dbtp": -1.0, "plr": [12, 20] }, "sub": "natural hall", "vocal": "none (spot mics)", "width": "decca tree", "signature": "no limiting, preserve micro-dynamics" },
+    { "id": "cinematic_trailer", "family": "classical", "master": { "lufs": [-14, -11], "dbtp": -1.0, "plr": [8, 12] }, "sub": "sub drops 30 Hz", "vocal": "choir, hybrid", "width": "full 360", "signature": "impact hits, sub drops" },
+    { "id": "reggaeton", "family": "latin", "master": { "lufs": [-9, -7], "dbtp": -1.0, "plr": [6, 8] }, "sub": "dembow kick 50-70 Hz", "vocal": "bright, 4-6 k", "width": "wide percs", "signature": "dembow pattern + sidechain" },
+    { "id": "afrobeat", "family": "latin", "master": { "lufs": [-10, -8], "dbtp": -1.0, "plr": [7, 9] }, "sub": "round kick, warm bass", "vocal": "bright, airy", "width": "wide percussion", "signature": "percussion layering" },
+    { "id": "reggae", "family": "latin", "master": { "lufs": [-12, -9], "dbtp": -1.0, "plr": [9, 12] }, "sub": "deep bass 40-80 Hz", "vocal": "dry, slap delay", "width": "wide skank guitar", "signature": "delay throws, one-drop" },
+    { "id": "world_ethnic", "family": "latin", "master": { "lufs": [-13, -10], "dbtp": -1.0, "plr": [10, 14] }, "sub": "instrument-dependent", "vocal": "natural", "width": "wide acoustic", "signature": "preserve timbre, light comp" }
+  ],
+  "mastering_chain": {
+    "universal_order": [
+      { "step": 1, "process": "high_pass_filter",   "params": "20-30 Hz (classical: 30-40 Hz gentle)" },
+      { "step": 2, "process": "corrective_eq",      "params": "narrow cuts only, <=3 dB single point" },
+      { "step": 3, "process": "dynamic_eq_mbc",     "params": "genre-dependent" },
+      { "step": 4, "process": "broadband_comp",     "params": "1-3 dB GR (bypass: classical, jazz)" },
+      { "step": 5, "process": "stereo_imaging",     "params": "mono <100-120 Hz, M/S width" },
+      { "step": 6, "process": "tonal_eq",          "params": "broad shelves, +/-1-2 dB" },
+      { "step": 7, "process": "saturation_exciter","params": "0.3-1 dB (genre dependent)" },
+      { "step": 8, "process": "limiter_maximizer","params": "target LUFS, TP ceiling" },
+      { "step": 9, "process": "dither",           "params": "24->16 bit, final" }
+    ],
+    "per_genre_deltas": [
+      { "family": "pop",        "hpf": "25 Hz",       "mbc": "3-band light",    "bus_comp": "1-2 dB", "width": "+10% M/S",  "sat": "0.5 dB",  "limiter_gr": "4-6 dB" },
+      { "family": "rock",       "hpf": "30 Hz",       "mbc": "3-band guitars",  "bus_comp": "1-2 dB", "width": "neutral",   "sat": "0.5 dB",  "limiter_gr": "4-6 dB" },
+      { "family": "hiphop",      "hpf": "25 Hz",       "mbc": "sub-only",        "bus_comp": "bypass", "width": "mono sub",  "sat": "1 dB",    "limiter_gr": "5-7 dB" },
+      { "family": "rnb",        "hpf": "30 Hz",       "mbc": "light",          "bus_comp": "1 dB",   "width": "+5%",      "sat": "0.3 dB",  "limiter_gr": "3-5 dB" },
+      { "family": "electronic",  "hpf": "25 Hz",       "mbc": "sub+low-mid",    "bus_comp": "bypass", "width": "mono<100",  "sat": "1 dB",    "limiter_gr": "5-7 dB" },
+      { "family": "acoustic",    "hpf": "35 Hz",       "mbc": "bypass",         "bus_comp": "bypass", "width": "neutral",   "sat": "0 dB",    "limiter_gr": "2-3 dB" },
+      { "family": "classical",   "hpf": "30 Hz gentle","mbc": "bypass",        "bus_comp": "bypass", "width": "neutral",   "sat": "0 dB",    "limiter_gr": "0-1 dB" },
+      { "family": "latin",       "hpf": "30 Hz",       "mbc": "light",          "bus_comp": "1 dB",   "width": "+5%",      "sat": "0.5 dB",  "limiter_gr": "4-6 dB" },
+      { "family": "ambient",     "hpf": "30 Hz",       "mbc": "bypass",         "bus_comp": "bypass", "width": "wide",     "sat": "tape 1 dB","limiter_gr": "1-3 dB" }
+    ]
+  },
+  "diagnostic_thresholds": {
+    "return_to_mix_if": {
+      "single_point_corrective_eq_db": 3,
+      "cumulative_corrective_eq_db": 6,
+      "true_peak_after_limiter_dbtp": -0.5,
+      "mono_compatibility_loss_db_100hz": 3,
+      "noise_floor_dbfs": -60,
+      "source_clipping": "any sample at 0 dBFS"
+    },
+    "fix_order": ["arrangement", "performance", "recording", "mixing", "mastering"],
+    "loudness_warnings": { "plr_min": 5, "plr_max_at_minus9_lufs": 20 }
+  },
+  "delivery_specs": [
+    { "output": "streaming_master", "format": "WAV", "bit_depth": 24, "sample_rate": [44100, 48000], "true_peak_dbtp": -1.0 },
+    { "output": "cd_master",        "format": "WAV", "bit_depth": 16, "sample_rate": 44100,         "true_peak_dbfs": -0.3, "dither": true },
+    { "output": "vinyl_premaster",  "format": "WAV", "bit_depth": 24, "sample_rate": [44100, 48000], "true_peak_dbtp": -3.0, "mono_bass": true, "min_plr": 10 },
+    { "output": "club_dj",          "format": "WAV", "bit_depth": 24, "sample_rate": [44100, 48000], "lufs": [-9, -7], "true_peak_dbtp": -0.5 },
+    { "output": "instrumental_tv",  "format": "WAV", "bit_depth": 24, "sample_rate": "session",      "limiter": false },
+    { "output": "stems",            "format": "WAV", "bit_depth": 24, "sample_rate": "session",      "headroom_dbfs": -6, "consolidated": true }
+  ],
+  "qc_checklist": [
+    "mono_check_bass_kick_lead_vocal",
+    "phase_correlation_positive_low_band",
+    "true_peak_measured_not_assumed",
+    "lufs_within_genre_range",
+    "plr_within_genre_range",
+    "no_sample_above_0_dbfs_in_source",
+    "level_matched_ab_vs_2_references",
+    "dither_applied_once_last",
+    "file_naming_convention_applied",
+    "metadata_isrc_embedded"
+  ]
+}

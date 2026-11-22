@@ -1,0 +1,254 @@
+{
+  "mcp_version": "1.0",
+  "server_name": "audio-mixing-mastering-agent",
+  "description": "MCP tool definitions for mixing/mastering AI agent",
+  "tools": [
+    {
+      "name": "analyze_audio",
+      "description": "Measure loudness, true peak, dynamics, phase, and mono compatibility of an audio file",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file_path":     { "type": "string" },
+          "target_genre":  { "type": "string" },
+          "measurements":  { "type": "array", "items": { "type": "string",
+                             "enum": ["lufs", "dbtp", "plr", "phase", "mono", "spectrum", "peak", "rms"] } }
+        },
+        "required": ["file_path", "measurements"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "lufs_i":        { "type": "number" },
+          "true_peak_dbtp": { "type": "number" },
+          "plr":            { "type": "number" },
+          "phase_corr":     { "type": "number", "minimum": -1, "maximum": 1 },
+          "mono_loss_db":   { "type": "number" },
+          "spectrum":       { "type": "array" },
+          "compliant_with_genre": { "type": "boolean" },
+          "warnings":      { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    {
+      "name": "diagnose_mix",
+      "description": "Run full diagnostic on a mix and return structured issues with fix recommendations",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file_path":       { "type": "string" },
+          "target_genre":    { "type": "string" },
+          "reference_files": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["file_path", "target_genre"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category":     { "type": "string", "enum": ["eq", "dynamics", "phase", "width", "noise", "clipping", "loudness"] },
+                "severity":     { "type": "string", "enum": ["info", "warning", "critical"] },
+                "location_hz":  { "type": "number" },
+                "description":  { "type": "string" },
+                "recommended_fix": { "type": "string" }
+              }
+            }
+          },
+          "return_to_mix_required": { "type": "boolean" },
+          "reason":              { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "load_reference",
+      "description": "Load a commercial reference track for A/B comparison with matched loudness",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file_path":  { "type": "string" },
+          "match_lufs": { "type": "number", "default": -14 },
+          "genre":      { "type": "string" }
+        },
+        "required": ["file_path"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "loaded":          { "type": "boolean" },
+          "lufs_i_original": { "type": "number" },
+          "lufs_i_matched":  { "type": "number" },
+          "gain_applied_db": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "level_match_ab",
+      "description": "Perform loudness-matched A/B between mix and reference",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "mix_file":       { "type": "string" },
+          "reference_file": { "type": "string" },
+          "match_to_lufs":  { "type": "number", "default": -14 }
+        },
+        "required": ["mix_file", "reference_file"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "mix_gain_db":       { "type": "number" },
+          "reference_gain_db": { "type": "number" },
+          "ready":             { "type": "boolean" }
+        }
+      }
+    },
+    {
+      "name": "mono_check",
+      "description": "Sum signal to mono and report bass/vocal compatibility loss",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file_path": { "type": "string" },
+          "bands_hz":  { "type": "array", "items": { "type": "array", "items": { "type": "number" } },
+                         "default": [[20, 120], [120, 500], [500, 2000], [2000, 8000]] }
+        },
+        "required": ["file_path"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "loss_per_band_db": { "type": "array", "items": { "type": "number" } },
+          "pass":             { "type": "boolean" }
+        }
+      }
+    },
+    {
+      "name": "set_plugin_param",
+      "description": "Set a plugin parameter in the DAW session (via MCP DAW bridge)",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "track_id":    { "type": "string" },
+          "plugin_slot": { "type": "integer" },
+          "plugin_name": { "type": "string" },
+          "param_name":  { "type": "string" },
+          "param_value": { "type": "number" },
+          "automation":  { "type": "boolean", "default": false }
+        },
+        "required": ["track_id", "plugin_slot", "param_name", "param_value"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "success":        { "type": "boolean" },
+          "previous_value": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "read_meter",
+      "description": "Read live meter values from DAW (LUFS, peak, RMS, GR, correlation)",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "track_id": { "type": "string", "default": "master" },
+          "meters":   { "type": "array", "items": { "type": "string",
+                        "enum": ["lufs_m", "lufs_s", "lufs_i", "peak", "true_peak", "rms", "gr", "correlation"] } }
+        },
+        "required": ["meters"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "values":    { "type": "object", "additionalProperties": { "type": "number" } },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    {
+      "name": "apply_mastering_chain",
+      "description": "Apply the full mastering chain per genre spec from knowledge base",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file_path":      { "type": "string" },
+          "genre":          { "type": "string" },
+          "target_lufs":    { "type": "number" },
+          "target_dbtp":    { "type": "number", "default": -1.0 },
+          "chain_override": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["file_path", "genre"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "chain_applied": { "type": "array", "items": { "type": "string" } },
+          "final_lufs":    { "type": "number" },
+          "final_dbtp":    { "type": "number" },
+          "limiter_gr_db": { "type": "number" },
+          "warnings":      { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    {
+      "name": "render_master",
+      "description": "Render final master with dither, per delivery spec",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "source_file":   { "type": "string" },
+          "output_path":   { "type": "string" },
+          "delivery_spec": { "type": "string",
+                             "enum": ["streaming_master", "cd_master", "vinyl_premaster", "club_dj", "instrumental_tv", "stems"] },
+          "dither":        { "type": "boolean", "default": true }
+        },
+        "required": ["source_file", "output_path", "delivery_spec"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "rendered":    { "type": "boolean" },
+          "output_path": { "type": "string" },
+          "final_lufs":  { "type": "number" },
+          "final_dbtp":  { "type": "number" },
+          "bit_depth":   { "type": "integer" },
+          "sample_rate": { "type": "integer" }
+        }
+      }
+    },
+    {
+      "name": "qc_check",
+      "description": "Run final QC checklist before delivery",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "file_path":     { "type": "string" },
+          "genre":         { "type": "string" },
+          "delivery_spec": { "type": "string" }
+        },
+        "required": ["file_path", "genre", "delivery_spec"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name":  { "type": "string" },
+                "pass":  { "type": "boolean" },
+                "value": { "type": "string" }
+              }
+            }
+          },
+          "ready_for_delivery": { "type": "boolean" }
+        }
+      }
+    }
+  ]
+}

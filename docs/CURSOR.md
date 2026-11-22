@@ -19,7 +19,7 @@ Logic Pro MCP talks to Logic Pro only on **macOS**. Cloud Agents that boot on Li
    brew install logic-pro-mcp
    ```
 
-3. Run the one-shot Mac bootstrap (fixes `git@github.com` SSH remotes, installs Agent CLI, then connects MCP):
+3. Run the one-shot Mac bootstrap (fixes `git@github.com` SSH remotes, installs Agent CLI, connects MCP, installs all Cursor skills):
 
    ```bash
    bash Scripts/mac-bootstrap-all.sh
@@ -41,7 +41,19 @@ Logic Pro MCP talks to Logic Pro only on **macOS**. Cloud Agents that boot on Li
 
 4. Complete permissions and Logic MCU wiring ([SETUP.md](SETUP.md#macos-permissions), [MCU setup](SETUP.md#mcu-control-surface)).
 
-5. Restart Cursor or reload the **logic-pro** server under **Settings → MCP**.
+5. Install bundled agent skills (workflow recipes, music-production stack, install helper):
+
+   ```bash
+   bash Scripts/install-cursor-skills.sh
+   ```
+
+   Optional: merge your Agent Store skills tree:
+
+   ```bash
+   CURSOR_AGENT_STORE_SKILLS="$HOME/.cursor/stores/user/skills" bash Scripts/install-cursor-skills.sh
+   ```
+
+6. Restart Cursor or reload the **logic-pro** server under **Settings → MCP**.
 
 This repository ships a project config at [`.cursor/mcp.json`](../.cursor/mcp.json). Cursor merges it with your user `~/.cursor/mcp.json`. If you build from source, either put the binary on `PATH` as `LogicProMCP` or set an absolute path:
 
